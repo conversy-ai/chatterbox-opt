@@ -20,6 +20,11 @@ from .models.t3.modules.cond_enc import T3Cond
 
 REPO_ID = "ResembleAI/chatterbox"
 
+# v2 stalls mid-utterance without the AlignmentStreamAnalyzer, which this fork disables
+# for speed; upstream dropped that analyzer only alongside v3. Set CHATTERBOX_T3_MODEL
+# to override.
+MULTILINGUAL_T3_MODEL = os.getenv("CHATTERBOX_T3_MODEL", "t3_mtl23ls_v3.safetensors")
+
 # Supported languages for the multilingual model
 SUPPORTED_LANGUAGES = {
     "ar": "Arabic",
@@ -164,7 +169,7 @@ class ChatterboxMultilingualTTS:
         ve.to(device).eval()
 
         t3 = T3(T3Config.multilingual())
-        t3_state = load_safetensors(ckpt_dir / "t3_mtl23ls_v2.safetensors")
+        t3_state = load_safetensors(ckpt_dir / MULTILINGUAL_T3_MODEL)
         if "model" in t3_state.keys():
             t3_state = t3_state["model"][0]
         t3.load_state_dict(t3_state)
@@ -191,7 +196,7 @@ class ChatterboxMultilingualTTS:
                 revision="main",
                 allow_patterns=[
                     "ve.pt",
-                    "t3_mtl23ls_v2.safetensors",
+                    MULTILINGUAL_T3_MODEL,
                     "s3gen.pt",
                     "grapheme_mtl_merged_expanded_v1.json",
                     "conds.pt",
